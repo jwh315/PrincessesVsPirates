@@ -42,10 +42,14 @@ PrincessVsPirates.Preload.prototype = {
         this.load.spritesheet('pirate_7', 'assets/images/pirate_7.png', 32, 48, 16);
         this.load.spritesheet('pirate_8', 'assets/images/pirate_8.png', 32, 48, 16);
 
+        this.load.spritesheet('flower', 'assets/images/flower.png', 32, 32, 18);
+        this.load.spritesheet('flowers_full', 'assets/images/flowers.png', 32, 32, 18);
+
         this.load.audio('menu_click', 'assets/audio/menu_click.wav');
         this.load.audio('shoot', 'assets/audio/shoot.wav');
         this.load.audio('jump', 'assets/audio/jump.wav');
         this.load.audio('player_die', 'assets/audio/player_die.wav');
+        this.load.audio('pick_flower', 'assets/audio/score.wav');
 
 
         this.load.onLoadComplete.add(this.onLoadComplete, this);

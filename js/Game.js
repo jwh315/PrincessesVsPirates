@@ -1,21 +1,30 @@
 PrincessVsPirates.Game = function(){
     this.playerDied = false;
     this.level = 0;
+
+    this.fireRate = 500;
+    this.nextFire = 0;
+
+    this.playerDirection = 'right';
+    this.score = 0;
+    this.lives = 3;
+    this.levelComplete = false;
 };
 
 PrincessVsPirates.Game.prototype = {
 
     create: function() {
+        this.levelComplete = false;
         this.game.physics.startSystem(Phaser.Physics.Arcade);
         this.game.physics.arcade.gravity.y = 465;
-        this.game.physics.arcade.TILE_BIAS = 40;
-
+        // this.game.physics.arcade.TILE_BIAS = 40;
 
         this.game.stage.backgroundColor = '#000';
 
         this.map = this.add.tilemap('map');
         this.map.addTilesetImage('tileset', 'tileset');
 
+        this.map.setCollision(68);
         this.map.setCollision(2);
         this.map.setCollision(10);
         this.map.setCollisionBetween(21, 24);
@@ -36,20 +45,55 @@ PrincessVsPirates.Game.prototype = {
 
         this.cursors = game.input.keyboard.createCursorKeys();
         this.jumpBtn = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        this.fireBtn = this.game.input.keyboard.addKey(Phaser.Keyboard.CONTROL);
 
         this.pirates = this.game.add.group();
+        this.decomposedPirates = this.game.add.group();
 
         this.initSounds();
-        this.makeSomePirates();
+        this.initFlowers();
+        this.initPirates();
+        this.initGameDisplay();
+
+
+    },
+
+    initGameDisplay: function() {
+        this.scoreText = this.game.add.bitmapText(10, 10, 'minecraftia', 'Score: ' + this.score, 24);
+        this.scoreText.tint = 0xffb1cf;
+        this.scoreText.fixedToCamera = true;
+
+        this.livesText = this.game.add.bitmapText(0, 10, 'minecraftia', 'Lives: ' + this.lives, 24);
+        this.livesText.x = window.innerWidth - this.livesText.textWidth - 25;
+        this.livesText.tint = 0xffb1cf;
+        this.livesText.fixedToCamera = true;
+    },
+
+    initFlowers: function() {
+        this.flowers = this.game.add.group();
+        this.flowers.enableBody = true;
+        this.flowers.physicsBodyType = Phaser.Physics.ARCADE;
+        this.flowers.createMultiple(50, 'flower', 0, false);
+        this.flowers.setAll('anchor.x', 0.5);
+        this.flowers.setAll('anchor.y', 0.5);
+        this.flowers.setAll('outOfBoundsKill', true);
+        this.flowers.setAll('checkWorldBounds', true);
+
+        this.flowers.forEach(function(flower){
+            flower.body.setSize(5, 5);
+            flower.body.bounce.y = 0.75;
+            flower.animations.add('color', [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,1]);
+        });
     },
 
     initSounds: function() {
         this.shoot = this.game.add.audio('shoot');
         this.jump = this.game.add.audio('jump');
         this.playerDie = this.game.add.audio('player_die');
+        this.pickFlower = this.game.add.audio('pick_flower');
     },
 
-    makeSomePirates: function() {
+    initPirates: function() {
         for (var i in levels.one.pirates) {
             var pirate = new Pirate(this.game, levels.one.pirates[i]);
             this.pirates.add(pirate);
@@ -62,56 +106,118 @@ PrincessVsPirates.Game.prototype = {
         }
     },
 
-    hitEnemy: function(player, pirate) {
-        this.playerDied = true;
-        this.pirates.setAll('body.velocity.x', 0);
-        this.pirates.callAll('celebrate');
-        this.playerDie.play();
-        player.body.velocity.x = 0;
-        player.body.velocity.y -= 200;
-        player.tint = 0xD3E397;
-        pirate.destroy();
-        player.frame = 1;
-        this.restartLevel(this);
+    collideEnemy: function(player, pirate) {
+        if (!pirate.dead) {
+            this.pirates.setAll('body.velocity.x', 0);
+            this.pirates.callAll('celebrate');
+            this.killPlayer();
+            pirate.destroy();
+        } else {
+            this.pickFlower.play();
+            var scoreTween = this.game.add.tween(pirate).to({x:  this.scoreText.x, y: this.scoreText.y}, 300, Phaser.Easing.Linear.NONE, true);
+
+            if (!pirate.pointsRewarded) {
+                this.score += 10;
+                pirate.pointsRewarded = true;
+            }
+
+            scoreTween.onComplete.add(function(){
+                this.scoreText.text = "Score: " + this.score;
+                pirate.destroy();
+            }, this);
+        }
+    },
+
+    hitEnemy: function(flower, pirate) {
+        pirate.decompose();
+        flower.kill();
+    },
+
+    checkLevelComplete: function(player, layer) {
+        if (layer.index == 68) {
+            this.levelComplete = true;
+            this.restartLevel(this);
+        }
     },
 
     update: function() {
         this.game.physics.arcade.collide(this.pirates, this.layer);
-        this.game.physics.arcade.overlap(this.player, this.pirates, this.hitEnemy, null, this);
+        this.game.physics.arcade.collide(this.flowers, this.layer);
+        this.game.physics.arcade.overlap(this.flowers, this.pirates, this.hitEnemy, null, this);
+        this.game.physics.arcade.overlap(this.player, this.pirates, this.collideEnemy, null, this);
 
         if (!this.playerDied) {
-            this.game.physics.arcade.collide(this.player, this.layer);
-            this.player.body.velocity.x = 0;
-            if (this.player.position.y >= this.game.world.height - this.player.height) {
-                this.killPlayer();
-                return;
+            this.game.physics.arcade.collide(this.player, this.layer, this.checkLevelComplete, null, this);
+            if (!this.levelComplete) {
+                this.player.body.velocity.x = 0;
+                if (this.player.position.y >= this.game.world.height - this.player.height) {
+                    this.killPlayer();
+                    return;
+                }
+
+                if (this.jumpBtn.isDown && this.player.body.onFloor()) {
+                    this.jump.play();
+                    this.player.body.velocity.y = -300;
+                }
+
+                if (this.cursors.right.isDown && this.player.position.x < this.game.world.width - this.player.width) {
+                    if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
+                        this.player.animations.play('walk-right');
+                    } else {
+                        this.player.frame = 8
+                    }
+                    this.playerDirection = 'right';
+                    this.player.body.velocity.x = 100;
+                } else if (this.cursors.left.isDown && this.player.position.x > 0) {
+                    if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
+                        this.player.animations.play('walk-left');
+                    } else {
+                        this.player.frame = 4;
+                    }
+                    this.playerDirection = 'left';
+                    this.player.body.velocity.x = -100;
+                }
+
+                if (this.fireBtn.isDown) {
+                    this.fire();
+                }
+                this.movePirates();
+            }
+        }
+    },
+
+    fire: function() {
+        if (game.time.now > this.nextFire && this.flowers.countDead() > 0) {
+            this.nextFire = game.time.now + this.fireRate;
+
+            var flower = this.flowers.getFirstExists(false);
+            var velocity, padding;
+            if (this.playerDirection == 'right') {
+                padding = 5;
+                velocity = 200;
+            } else {
+                padding = 20;
+                velocity = -200;
             }
 
-            if (this.jumpBtn.isDown && this.player.body.onFloor()) {
-                this.jump.play();
-                this.player.body.velocity.y = -300;
-            }
+            flower.reset(this.player.position.x - padding, this.player.position.y - 10);
+            // flower.body.allowGravity = false;
+            flower.animations.play('color', 10, true);
+            this.shoot.play();
+            flower.body.velocity.x = velocity;
 
-            if (this.cursors.right.isDown && this.player.position.x < this.game.world.width - this.player.width) {
-                if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
-                    this.player.animations.play('walk-right');
-                } else {
-                    this.player.frame = 8
-                }
-                this.player.body.velocity.x = 125;
-            } else if (this.cursors.left.isDown && this.player.position.x > 0) {
-                if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
-                    this.player.animations.play('walk-left');
-                } else {
-                    this.player.frame = 4;
-                }
-                this.player.body.velocity.x = -125;
-            }
-            this.movePirates();
+            setTimeout(function(){
+                flower.kill();
+            }, 2000);
         }
     },
 
     killPlayer: function() {
+        this.lives--;
+        this.player.frame = 1;
+        this.player.body.velocity.x = 0;
+        this.player.body.velocity.y -= 200;
+        this.player.tint = 0xD3E397;
         this.player.destroy();
         this.playerDie.play();
         this.playerDied = true;
