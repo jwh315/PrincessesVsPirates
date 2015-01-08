@@ -16,6 +16,7 @@ PrincessVsPirates.Boot.prototype = {
 
         if (this.game.device.desktop) {
             this.scale.pageAlignHorizontally = true;
+            this.scale.pageAlignVertically = true;
         } else {
             this.scale.scaleMod = Phaser.ScaleManager.SHOW_ALL;
             this.scale.minWidth = 568;

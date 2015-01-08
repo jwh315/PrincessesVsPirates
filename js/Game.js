@@ -64,7 +64,7 @@ PrincessVsPirates.Game.prototype = {
         this.scoreText.fixedToCamera = true;
 
         this.livesText = this.game.add.bitmapText(0, 10, 'minecraftia', 'Lives: ' + this.lives, 24);
-        this.livesText.x = window.innerWidth - this.livesText.textWidth - 25;
+        this.livesText.x = this.game.width - this.livesText.textWidth - 25;
         this.livesText.tint = 0xffb1cf;
         this.livesText.fixedToCamera = true;
     },
@@ -73,7 +73,7 @@ PrincessVsPirates.Game.prototype = {
         this.flowers = this.game.add.group();
         this.flowers.enableBody = true;
         this.flowers.physicsBodyType = Phaser.Physics.ARCADE;
-        this.flowers.createMultiple(50, 'flower', 0, false);
+        this.flowers.createMultiple(5, 'flower', 0, false);
         this.flowers.setAll('anchor.x', 0.5);
         this.flowers.setAll('anchor.y', 0.5);
         this.flowers.setAll('outOfBoundsKill', true);
@@ -167,7 +167,7 @@ PrincessVsPirates.Game.prototype = {
                         this.player.frame = 8
                     }
                     this.playerDirection = 'right';
-                    this.player.body.velocity.x = 100;
+                    this.player.body.velocity.x = 150;
                 } else if (this.cursors.left.isDown && this.player.position.x > 0) {
                     if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
                         this.player.animations.play('walk-left');
@@ -175,7 +175,7 @@ PrincessVsPirates.Game.prototype = {
                         this.player.frame = 4;
                     }
                     this.playerDirection = 'left';
-                    this.player.body.velocity.x = -100;
+                    this.player.body.velocity.x = -150;
                 }
 
                 if (this.fireBtn.isDown) {
@@ -184,6 +184,12 @@ PrincessVsPirates.Game.prototype = {
                 this.movePirates();
             }
         }
+
+        this.flowers.forEach(function(flower){
+            if (flower.body.velocity.x == 0) {
+                flower.kill();
+            }
+        });
     },
 
     fire: function() {
@@ -205,10 +211,6 @@ PrincessVsPirates.Game.prototype = {
             flower.animations.play('color', 10, true);
             this.shoot.play();
             flower.body.velocity.x = velocity;
-
-            setTimeout(function(){
-                flower.kill();
-            }, 2000);
         }
     },
 
@@ -218,7 +220,7 @@ PrincessVsPirates.Game.prototype = {
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y -= 200;
         this.player.tint = 0xD3E397;
-        this.player.destroy();
+        // this.player.destroy();
         this.playerDie.play();
         this.playerDied = true;
         this.pirates.callAll('celebrate');

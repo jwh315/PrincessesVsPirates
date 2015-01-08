@@ -1,4 +1,4 @@
-var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.CANVAS, '');
+var game = new Phaser.Game(900, 650, Phaser.CANVAS, '');
 
 game.state.add('Boot', PrincessVsPirates.Boot);
 game.state.add('Preload', PrincessVsPirates.Preload);
