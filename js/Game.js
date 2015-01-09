@@ -14,10 +14,10 @@ PrincessVsPirates.Game = function(){
 PrincessVsPirates.Game.prototype = {
 
     create: function() {
-        this.levelComplete = false;
+
         this.game.physics.startSystem(Phaser.Physics.Arcade);
         this.game.physics.arcade.gravity.y = 465;
-        // this.game.physics.arcade.TILE_BIAS = 40;
+        this.game.physics.arcade.TILE_BIAS = 40;
 
         this.game.stage.backgroundColor = '#000';
 
@@ -38,6 +38,7 @@ PrincessVsPirates.Game.prototype = {
         this.player.anchor.setTo(0.5);
 
         this.player.body.bounce.y = 0.2;
+        this.player.body.collideWorldBounds = true;
         this.game.camera.follow(this.player);
 
         this.player.animations.add('walk-left', [4,5,6,7,4]);
@@ -55,7 +56,8 @@ PrincessVsPirates.Game.prototype = {
         this.initPirates();
         this.initGameDisplay();
 
-
+        this.playerDied = false;
+        this.levelComplete = false;
     },
 
     initGameDisplay: function() {
@@ -136,7 +138,7 @@ PrincessVsPirates.Game.prototype = {
     checkLevelComplete: function(player, layer) {
         if (layer.index == 68) {
             this.levelComplete = true;
-            this.restartLevel(this);
+            this.restartLevel();
         }
     },
 
@@ -146,21 +148,17 @@ PrincessVsPirates.Game.prototype = {
         this.game.physics.arcade.overlap(this.flowers, this.pirates, this.hitEnemy, null, this);
         this.game.physics.arcade.overlap(this.player, this.pirates, this.collideEnemy, null, this);
 
-        if (!this.playerDied) {
+        if (!this.playerDied && !this.playerHasFallen()) {
             this.game.physics.arcade.collide(this.player, this.layer, this.checkLevelComplete, null, this);
             if (!this.levelComplete) {
                 this.player.body.velocity.x = 0;
-                if (this.player.position.y >= this.game.world.height - this.player.height) {
-                    this.killPlayer();
-                    return;
-                }
 
                 if (this.jumpBtn.isDown && this.player.body.onFloor()) {
                     this.jump.play();
                     this.player.body.velocity.y = -300;
                 }
 
-                if (this.cursors.right.isDown && this.player.position.x < this.game.world.width - this.player.width) {
+                if (this.cursors.right.isDown) {
                     if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
                         this.player.animations.play('walk-right');
                     } else {
@@ -168,7 +166,7 @@ PrincessVsPirates.Game.prototype = {
                     }
                     this.playerDirection = 'right';
                     this.player.body.velocity.x = 150;
-                } else if (this.cursors.left.isDown && this.player.position.x > 0) {
+                } else if (this.cursors.left.isDown) {
                     if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
                         this.player.animations.play('walk-left');
                     } else {
@@ -183,13 +181,20 @@ PrincessVsPirates.Game.prototype = {
                 }
                 this.movePirates();
             }
-        }
 
-        this.flowers.forEach(function(flower){
-            if (flower.body.velocity.x == 0) {
-                flower.kill();
-            }
-        });
+            this.flowers.forEach(function(flower){
+                if (flower.body.velocity.x == 0) {
+                    flower.kill();
+                }
+            });
+
+        } else if(this.playerHasFallen()) {
+            this.restartLevel();
+        }
+    },
+
+    playerHasFallen: function() {
+        return this.player.position.y >= this.game.world.height - this.player.height
     },
 
     fire: function() {
@@ -199,7 +204,7 @@ PrincessVsPirates.Game.prototype = {
             var flower = this.flowers.getFirstExists(false);
             var velocity, padding;
             if (this.playerDirection == 'right') {
-                padding = 5;
+                padding = -20;
                 velocity = 200;
             } else {
                 padding = 20;
@@ -207,7 +212,6 @@ PrincessVsPirates.Game.prototype = {
             }
 
             flower.reset(this.player.position.x - padding, this.player.position.y - 10);
-            // flower.body.allowGravity = false;
             flower.animations.play('color', 10, true);
             this.shoot.play();
             flower.body.velocity.x = velocity;
@@ -220,19 +224,13 @@ PrincessVsPirates.Game.prototype = {
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y -= 200;
         this.player.tint = 0xD3E397;
-        // this.player.destroy();
         this.playerDie.play();
         this.playerDied = true;
         this.pirates.callAll('celebrate');
-        this.restartLevel(this);
     },
 
-    restartLevel: function(that) {
-        setTimeout(function(){
-            that.playerDied = false;
-            that.player.destroy();
-            that.pirates.destroy();
-            that.game.state.start('Game', true, false);
-        }, 2000);
+    restartLevel: function() {
+        this.game.camera.reset();
+        this.game.state.start('Game', true, false);
     }
 };
