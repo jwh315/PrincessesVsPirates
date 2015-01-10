@@ -1,12 +1,14 @@
+//access game objects in console like this - this.game.state.states.Game.{member}
 PrincessVsPirates.Game = function(){
     this.playerDied = false;
-    this.level = 0;
+    this.level = 1;
 
     this.fireRate = 500;
     this.nextFire = 0;
 
     this.playerDirection = 'right';
-    this.score = 0;
+    this.gameScore = 0;
+    this.levelScore = 0;
     this.lives = 3;
     this.levelComplete = false;
 };
@@ -61,7 +63,7 @@ PrincessVsPirates.Game.prototype = {
     },
 
     initGameDisplay: function() {
-        this.scoreText = this.game.add.bitmapText(10, 10, 'minecraftia', 'Score: ' + this.score, 24);
+        this.scoreText = this.game.add.bitmapText(10, 10, 'minecraftia', 'Score: ' + this.gameScore, 24);
         this.scoreText.tint = 0xffb1cf;
         this.scoreText.fixedToCamera = true;
 
@@ -96,15 +98,19 @@ PrincessVsPirates.Game.prototype = {
     },
 
     initPirates: function() {
-        for (var i in levels.one.pirates) {
-            var pirate = new Pirate(this.game, levels.one.pirates[i]);
+        for (var i in levels[this.level].pirates) {
+            var pirate = new Pirate(this.game, this.layer, levels[this.level].pirates[i]);
             this.pirates.add(pirate);
         }
     },
 
     movePirates: function() {
         for (var i in this.pirates.children) {
-            this.pirates.children[i].move();
+            if (this.pirates.children[i].killedPlayer) {
+                this.killPlayer();
+            } else {
+                this.pirates.children[i].move();
+            }
         }
     },
 
@@ -119,12 +125,12 @@ PrincessVsPirates.Game.prototype = {
             var scoreTween = this.game.add.tween(pirate).to({x:  this.scoreText.x, y: this.scoreText.y}, 300, Phaser.Easing.Linear.NONE, true);
 
             if (!pirate.pointsRewarded) {
-                this.score += 10;
+                this.levelScore += 10;
                 pirate.pointsRewarded = true;
             }
 
             scoreTween.onComplete.add(function(){
-                this.scoreText.text = "Score: " + this.score;
+                this.scoreText.text = "Score: " + (parseInt(this.gameScore) + parseInt(this.levelScore));
                 pirate.destroy();
             }, this);
         }
@@ -138,6 +144,9 @@ PrincessVsPirates.Game.prototype = {
     checkLevelComplete: function(player, layer) {
         if (layer.index == 68) {
             this.levelComplete = true;
+            this.gameScore += this.levelScore;
+            //uncomment when we have more then one level ready
+            // this.level++;
             this.restartLevel();
         }
     },
@@ -189,6 +198,7 @@ PrincessVsPirates.Game.prototype = {
             });
 
         } else if(this.playerHasFallen()) {
+            this.lives--;
             this.restartLevel();
         }
     },
@@ -219,7 +229,6 @@ PrincessVsPirates.Game.prototype = {
     },
 
     killPlayer: function() {
-        this.lives--;
         this.player.frame = 1;
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y -= 200;
@@ -230,7 +239,29 @@ PrincessVsPirates.Game.prototype = {
     },
 
     restartLevel: function() {
-        this.game.camera.reset();
-        this.game.state.start('Game', true, false);
+        if (this.lives) {
+            this.game.camera.reset();
+            this.game.state.restart();
+        } else {
+            this.game.state.start('MainMenu');
+        }
+    },
+
+    shutdown: function() {
+        if (!this.lives) {
+            this.lives = 3;
+            this.gameScore = 0;
+            this.level = 1;
+        }
+        this.levelScore = 0;
+
+        this.flowers = null;
+        this.pirates = null;
+        this.player = null;
+
+        this.shoot = null;
+        this.jump = null;
+        this.playerDie = null;
+        this.pickFlower = null;
     }
 };

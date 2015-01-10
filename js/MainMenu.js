@@ -8,7 +8,7 @@ PrincessVsPirates.MainMenu.prototype = {
         princesses = this.game.add.bitmapText(0, this.game.world.centerY - 150, 'minecraftia', 'Princesses', 42);
         princesses.tint = 0xffb1cf;
         princesses.x = this.game.world.centerX - princesses.textWidth / 2;
-
+        console.log(this.game.world.centerX);
         versus = this.game.add.bitmapText(0, princesses.y + 60, 'minecraftia', 'vs', 42);
         versus.tint = 0xffffff;
         versus.x = this.game.world.centerX - versus.textWidth / 2;
@@ -31,9 +31,6 @@ PrincessVsPirates.MainMenu.prototype = {
             buttons.push(b);
         }
         this.menuclick = this.game.add.audio('menu_click');
-    },
-
-    update: function() {
     },
 
     choosePlayer: function(player) {

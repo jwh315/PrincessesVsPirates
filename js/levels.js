@@ -1,13 +1,16 @@
 var levels = {
-    one: {
+    1: {
         pirates: [
                     {
                         x: 1050,
                         y: 400,
                         minX: 1000,
                         maxX: 1200,
-                        speed: 0.5,
+                        speed: 50,
                         key: 'pirate_1',
+                        weapon: false,
+                        weaponVelocity: false,
+                        attackInterval: false,
                         startFrame: 4,
                         direction: 'left',
                     },
@@ -17,8 +20,11 @@ var levels = {
                         y: 450,
                         minX: 900,
                         maxX: 970,
-                        speed: 0.7,
+                        speed: 75,
                         key: 'pirate_1',
+                        weapon: 'pirate_sword',
+                        weaponVelocity: 200,
+                        attackInterval: 3000,
                         startFrame: 4,
                         direction: 'right',
                     },
@@ -28,22 +34,14 @@ var levels = {
                         y: 600,
                         minX: 670,
                         maxX: 800,
-                        speed: 0.7,
+                        speed: 75,
                         key: 'pirate_2',
+                        weapon: 'pirate_sword',
+                        weaponVelocity: 200,
+                        attackInterval: 10000,
                         startFrame: 8,
                         direction: 'right',
                     },
-
-                    {
-                        x: 200,
-                        y: 400,
-                        minX: 200,
-                        maxX: 225,
-                        speed: 0.7,
-                        key: 'pirate_2',
-                        startFrame: 8,
-                        direction: 'right',
-                    }
                 ]
     }
 }

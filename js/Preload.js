@@ -42,6 +42,8 @@ PrincessVsPirates.Preload.prototype = {
         this.load.spritesheet('pirate_7', 'assets/images/pirate_7.png', 32, 48, 16);
         this.load.spritesheet('pirate_8', 'assets/images/pirate_8.png', 32, 48, 16);
 
+        this.load.spritesheet('pirate_sword', 'assets/images/sword.png', 16, 16, 1);
+
         this.load.spritesheet('flower', 'assets/images/flower.png', 32, 32, 18);
         this.load.spritesheet('flowers_full', 'assets/images/flowers.png', 32, 32, 18);
 

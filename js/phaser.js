@@ -18368,6 +18368,10 @@ Phaser.StateManager.prototype = {
             }
         }
 
+        if (this.game.world !== null) {
+            this.game.world.bounds.width = this.game.width;
+            this.game.world.bounds.height = this.game.height;
+        }
     },
 
     /**
@@ -20130,6 +20134,7 @@ Phaser.Stage = function (game) {
     {
         this.parseConfig(game.config);
     }
+
 
 };
 
