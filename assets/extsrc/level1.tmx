@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="60" height="28" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="tileset" tilewidth="32" tileheight="32">
+  <image source="../../../var/www/TestPhaserGame/assets/tileset.png" width="320" height="320"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="60" height="28">
+  <data encoding="base64" compression="zlib">
+   eJzt0zEOgzAMBdCoIzu0FwBG4AAtCysbc+j9T1FXAqmq2tgmQCD6w5OQIIm/TQZjzAAQoTt5kPbAZ+1Z49mgNwB6uDfoMUBM1rpvKckm14PUBP5uzLx9Z72FC2PNs7rAWUeSMN7fWeN3R7m1OSlIucNMJXm1/4i01/30XJGaNIFm+omr//lnzcwK+iO9S673rn00eRPBnly/7BftuTPXe20mruYlffo1b80+ofKGgrzIi7znFUveF66+l84=
+  </data>
+ </layer>
+</map>
