@@ -11,6 +11,7 @@ PrincessVsPirates.Game = function(){
     this.levelScore = 0;
     this.lives = 3;
     this.levelComplete = false;
+    this.onPlatform = false;
 };
 
 PrincessVsPirates.Game.prototype = {
@@ -23,8 +24,8 @@ PrincessVsPirates.Game.prototype = {
 
         this.game.stage.backgroundColor = '#000';
 
-        this.map = this.add.tilemap('map');
-        this.map.addTilesetImage('tileset', 'tileset');
+        this.map = this.add.tilemap(levels[this.level].tileMap);
+        this.map.addTilesetImage('tileset', levels[this.level].tileSet);
 
         this.map.setCollision(68);
         this.map.setCollision(2);
@@ -35,7 +36,7 @@ PrincessVsPirates.Game.prototype = {
 
         this.layer.resizeWorld();
 
-        this.player = this.add.sprite(20, this.game.height / 2, PrincessVsPirates.playerSelected, 8);
+        this.player = this.add.sprite(levels[this.level].startX, levels[this.level].startY, PrincessVsPirates.playerSelected, 8);
         this.game.physics.enable(this.player);
         this.player.anchor.setTo(0.5);
 
@@ -52,14 +53,24 @@ PrincessVsPirates.Game.prototype = {
 
         this.pirates = this.game.add.group();
         this.decomposedPirates = this.game.add.group();
+        this.platforms = this.game.add.group();
 
         this.initSounds();
         this.initFlowers();
         this.initPirates();
         this.initGameDisplay();
+        this.initPlatforms();
 
         this.playerDied = false;
         this.levelComplete = false;
+
+
+    },
+
+    initPlatforms: function() {
+        for (var i in levels[this.level].platforms) {
+            this.platforms.add(new Platform(this.game, levels[this.level].platforms[i]));
+        }
     },
 
     initGameDisplay: function() {
@@ -114,6 +125,12 @@ PrincessVsPirates.Game.prototype = {
         }
     },
 
+    movePlatforms: function() {
+        for (var i in this.platforms.children) {
+            this.platforms.children[i].move();
+        }
+    },
+
     collideEnemy: function(player, pirate) {
         if (!pirate.dead) {
             this.pirates.setAll('body.velocity.x', 0);
@@ -146,7 +163,12 @@ PrincessVsPirates.Game.prototype = {
             this.levelComplete = true;
             this.gameScore += this.levelScore;
             //uncomment when we have more then one level ready
-            // this.level++;
+            this.level++;
+
+            if (this.level > 2) {
+                this.level = 1;
+            }
+
             this.restartLevel();
         }
     },
@@ -158,17 +180,19 @@ PrincessVsPirates.Game.prototype = {
         this.game.physics.arcade.overlap(this.player, this.pirates, this.collideEnemy, null, this);
 
         if (!this.playerDied && !this.playerHasFallen()) {
+            this.onPlatform = this.game.physics.arcade.collide(this.player, this.platforms);
             this.game.physics.arcade.collide(this.player, this.layer, this.checkLevelComplete, null, this);
             if (!this.levelComplete) {
+                var allowedToMove = this.player.body.onFloor() || this.onPlatform;
                 this.player.body.velocity.x = 0;
 
-                if (this.jumpBtn.isDown && this.player.body.onFloor()) {
+                if (this.jumpBtn.isDown && allowedToMove) {
                     this.jump.play();
                     this.player.body.velocity.y = -300;
                 }
 
                 if (this.cursors.right.isDown) {
-                    if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
+                    if (allowedToMove && !this.player.animations.isPlaying) {
                         this.player.animations.play('walk-right');
                     } else {
                         this.player.frame = 8
@@ -176,7 +200,7 @@ PrincessVsPirates.Game.prototype = {
                     this.playerDirection = 'right';
                     this.player.body.velocity.x = 150;
                 } else if (this.cursors.left.isDown) {
-                    if (this.player.body.onFloor() && !this.player.animations.isPlaying) {
+                    if (allowedToMove && !this.player.animations.isPlaying) {
                         this.player.animations.play('walk-left');
                     } else {
                         this.player.frame = 4;
@@ -189,6 +213,7 @@ PrincessVsPirates.Game.prototype = {
                     this.fire();
                 }
                 this.movePirates();
+                this.movePlatforms();
             }
 
             this.flowers.forEach(function(flower){

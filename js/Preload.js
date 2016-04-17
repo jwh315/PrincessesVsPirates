@@ -23,8 +23,11 @@ PrincessVsPirates.Preload.prototype = {
         this.preloadBar.anchor.setTo(0.5);
         this.load.setPreloadSprite(this.preloadBar);
 
-        this.load.image('tileset', 'assets/maps/tileset.png');
-        this.load.tilemap('map', 'assets/maps/tilemap.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('default_tileset', 'assets/maps/tileset.png');
+        this.load.tilemap('level_1', 'assets/maps/level_1.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap('level_2', 'assets/maps/level_2.json', null, Phaser.Tilemap.TILED_JSON);
+
+        this.load.spritesheet('platform', 'assets/maps/platform.png', 96, 25, 1);
 
         this.load.spritesheet('snowwhite', 'assets/images/snowwhite.png', 32, 48, 16);
         this.load.spritesheet('ariel', 'assets/images/ariel.png', 32, 48, 16);

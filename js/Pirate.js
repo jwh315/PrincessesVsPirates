@@ -55,7 +55,7 @@ Pirate.prototype.initWeapons = function() {
     if (this.weaponType) {
         this.weapons.enableBody = true;
         this.weapons.physicsBodyType = Phaser.Physics.ARCADE;
-        this.weapons.createMultiple(5, this.weaponType, 0, false);
+        this.weapons.createMultiple(20, this.weaponType, 0, false);
         this.weapons.setAll('anchor.x', 0.5);
         this.weapons.setAll('anchor.y', 0.5);
         this.weapons.setAll('outOfBoundsKill', true);
